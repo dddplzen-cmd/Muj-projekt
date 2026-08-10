@@ -1,0 +1,2670 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#35205f">
+
+  <title>Plzeňská výzva – administrace</title>
+
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #222222;
+      --muted: #666b73;
+      --primary: #6f2dbd;
+      --primary-dark: #4e1d87;
+      --primary-light: #f0e7ff;
+      --border: #e3e5e9;
+      --success: #218739;
+      --danger: #b42318;
+      --danger-light: #fff0ee;
+      --shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .page {
+      width: min(100% - 24px, 1120px);
+      margin: 0 auto;
+      padding: 24px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #ffffff, #f2e8ff);
+      box-shadow: var(--shadow);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 5vw, 2.4rem);
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .logout-button {
+      display: none;
+      flex-shrink: 0;
+      min-height: 44px;
+      padding: 9px 14px;
+      border: 1px solid var(--primary);
+      border-radius: 11px;
+      background: #ffffff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .logout-button.show {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .login-card {
+      width: min(100%, 480px);
+      margin: 40px auto 0;
+    }
+
+    .login-card h2,
+    .dashboard h2,
+    .detail-card h2 {
+      margin: 0 0 8px;
+    }
+
+    .intro {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .form-field {
+      margin-top: 14px;
+    }
+
+    .form-field label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 700;
+    }
+
+    .form-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 13px;
+      border: 1px solid #cdd0d6;
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    .form-input:focus {
+      outline: 3px solid rgba(111, 45, 189, 0.18);
+      border-color: var(--primary);
+    }
+
+    .primary-button {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 18px;
+      padding: 11px 15px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 11px 12px;
+      border-radius: 11px;
+      font-weight: 700;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.error {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .status.success {
+      background: #e8f7ec;
+      color: var(--success);
+    }
+
+    .status.working {
+      background: #edf3ff;
+      color: #2451a6;
+    }
+
+    .dashboard {
+      display: none;
+    }
+
+    .dashboard.show {
+      display: block;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .refresh-button {
+      min-height: 48px;
+      padding: 10px 15px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: var(--card);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-number {
+      display: block;
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .summary-label {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .table-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8f6fb;
+      color: #494d55;
+      font-size: 0.86rem;
+    }
+
+    tbody tr:hover {
+      background: #fbf9ff;
+    }
+
+    .team-name {
+      font-weight: 800;
+    }
+
+    .small-text {
+      color: var(--muted);
+      font-size: 0.87rem;
+    }
+
+    .code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.87rem;
+    }
+
+    .open-button {
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .empty-state {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .detail-panel {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .detail-panel.show {
+      display: block;
+    }
+
+    .detail-card {
+      position: relative;
+    }
+
+    .close-detail {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: #f1f1f4;
+      color: #333;
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .detail-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .meta-item {
+      padding: 12px;
+      border-radius: 12px;
+      background: #f7f4fa;
+    }
+
+    .meta-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .meta-value {
+      display: block;
+      margin-top: 4px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .section-title {
+      margin: 24px 0 10px;
+      font-size: 1.15rem;
+    }
+
+    .task-results {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-result {
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #ffffff;
+    }
+
+    .task-result.completed {
+      border-color: rgba(33, 135, 57, 0.4);
+      background: #f7fcf8;
+    }
+
+    .task-result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .task-result-title {
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .badge.done {
+      background: #e6f6ea;
+      color: var(--success);
+    }
+
+    .badge.missing {
+      background: #f0f1f3;
+      color: #6b7078;
+    }
+
+    .answer {
+      margin: 9px 0 0;
+      padding: 10px 11px;
+      border-radius: 10px;
+      background: #f7f7f9;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .answer.empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .photo-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #ffffff;
+    }
+
+    .photo-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #eceef1;
+    }
+
+    .photo-caption {
+      padding: 10px 11px;
+      font-weight: 700;
+    }
+
+    .photo-error {
+      padding: 16px;
+      color: var(--danger);
+      background: var(--danger-light);
+    }
+
+
+    .ranking-position {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 900;
+    }
+
+    .score-value {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+
+    .evaluation-card {
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px solid rgba(111, 45, 189, 0.3);
+      border-radius: 15px;
+      background: #fbf8ff;
+    }
+
+    .evaluation-card h3 {
+      margin: 0 0 6px;
+    }
+
+    .evaluation-help {
+      margin: 0 0 15px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .evaluation-subsection {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(111, 45, 189, 0.18);
+    }
+
+    .evaluation-subsection:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .evaluation-subsection h4 {
+      margin: 0 0 5px;
+      font-size: 1rem;
+    }
+
+    .task-point-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .task-point-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(33, 135, 57, 0.28);
+      border-radius: 12px;
+      background: #f7fcf8;
+    }
+
+    .task-point-row.is-rejected {
+      border-color: rgba(180, 35, 24, 0.32);
+      background: var(--danger-light);
+    }
+
+    .task-point-row.is-uncompleted {
+      border-color: var(--border);
+      background: #f4f5f7;
+      opacity: 0.78;
+    }
+
+    .task-point-name {
+      display: block;
+      font-weight: 800;
+    }
+
+    .task-point-state {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .task-point-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 7px 10px;
+      border: 1px solid rgba(33, 135, 57, 0.35);
+      border-radius: 10px;
+      background: #ffffff;
+      color: var(--success);
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .task-point-row.is-rejected .task-point-control {
+      border-color: rgba(180, 35, 24, 0.42);
+      color: var(--danger);
+    }
+
+    .task-point-row.is-uncompleted .task-point-control {
+      border-color: #d4d6da;
+      color: #777b82;
+      cursor: not-allowed;
+    }
+
+    .task-point-checkbox {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: var(--success);
+    }
+
+    .task-point-row.is-rejected .task-point-checkbox {
+      accent-color: var(--danger);
+    }
+
+    .task-result.point-rejected {
+      border-color: rgba(180, 35, 24, 0.38);
+      background: #fff8f7;
+    }
+
+    .badge.rejected {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .score-correction {
+      margin-top: 2px;
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .bonus-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bonus-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 110px;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    .bonus-name {
+      font-weight: 700;
+    }
+
+    .bonus-maximum {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+
+    .bonus-row.is-occupied {
+      background: #f3f4f6;
+      opacity: 0.82;
+    }
+
+    .bonus-winner {
+      display: block;
+      margin-top: 4px;
+      color: var(--danger);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .bonus-input:disabled {
+      background: #e7e8eb;
+      color: #777b82;
+      cursor: not-allowed;
+    }
+
+    .bonus-input {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid #cdd0d6;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .evaluation-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .evaluation-number {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .evaluation-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .evaluation-note {
+      width: 100%;
+      min-height: 90px;
+      margin-top: 14px;
+      padding: 11px 12px;
+      border: 1px solid #cdd0d6;
+      border-radius: 11px;
+      resize: vertical;
+      font: inherit;
+    }
+
+    .save-evaluation-button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+
+    .danger-zone {
+      margin-top: 24px;
+      padding: 16px;
+      border: 1px solid rgba(180, 35, 24, 0.35);
+      border-radius: 14px;
+      background: var(--danger-light);
+    }
+
+    .danger-zone h3 {
+      margin: 0 0 6px;
+      color: var(--danger);
+    }
+
+    .danger-zone p {
+      margin: 0 0 12px;
+      color: #6f2b26;
+    }
+
+    .delete-team-button {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      border: 1px solid var(--danger);
+      border-radius: 11px;
+      background: #ffffff;
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .delete-team-button:hover {
+      background: #fff7f6;
+    }
+
+    .evaluation-status {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 11px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .evaluation-status.show {
+      display: block;
+    }
+
+    .evaluation-status.success {
+      background: #e8f7ec;
+      color: var(--success);
+    }
+
+    .evaluation-status.error {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+
+    .toolbar {
+      grid-template-columns: minmax(220px, 1fr) 190px auto auto auto;
+    }
+
+    .filter-select {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid #cdd0d6;
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .export-button {
+      min-height: 48px;
+      padding: 10px 15px;
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      background: #ffffff;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .evaluation-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .evaluation-badge.done {
+      background: #e6f6ea;
+      color: var(--success);
+    }
+
+    .evaluation-badge.waiting {
+      background: #fff4df;
+      color: #8a5a00;
+    }
+
+    .bonus-overview {
+      margin-bottom: 16px;
+    }
+
+    .bonus-overview h2 {
+      margin: 0 0 8px;
+    }
+
+    .bonus-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .bonus-overview-item {
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    .bonus-overview-title {
+      display: block;
+      font-weight: 800;
+    }
+
+    .bonus-overview-winner {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .bonus-overview-winner.assigned {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .bonus-overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .bonus-row,
+      .evaluation-summary,
+      .task-point-row {
+        grid-template-columns: 1fr;
+      }
+
+      .task-point-control {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar,
+      .summary-grid,
+      .detail-meta,
+      .photo-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .logout-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Plzeňská výzva</h1>
+        <p>Administrace výsledků</p>
+      </div>
+
+      <button id="logoutButton" class="logout-button" type="button">
+        Odhlásit se
+      </button>
+    </header>
+
+    <section id="loginSection" class="card login-card">
+      <h2>Přihlášení organizátora</h2>
+
+      <p class="intro">
+        Přihlaste se účtem, který jste vytvořili v Supabase Authentication.
+      </p>
+
+      <form id="loginForm">
+        <div class="form-field">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            class="form-input"
+            type="email"
+            autocomplete="username"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="password">Heslo</label>
+          <input
+            id="password"
+            class="form-input"
+            type="password"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <button id="loginButton" class="primary-button" type="submit">
+          Přihlásit se
+        </button>
+      </form>
+
+      <div id="loginStatus" class="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="dashboard" class="dashboard">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span id="teamCount" class="summary-number">0</span>
+          <span class="summary-label">odevzdaných týmů</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="averageCompleted" class="summary-number">0</span>
+          <span class="summary-label">průměrně uznaných bodů</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="photoCount" class="summary-number">0</span>
+          <span class="summary-label">odeslaných fotografií</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="evaluatedCount" class="summary-number">0</span>
+          <span class="summary-label">vyhodnocených týmů</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          id="searchInput"
+          class="form-input"
+          type="search"
+          placeholder="Hledat tým, člena nebo kód odevzdání…"
+        >
+
+        <select id="evaluationFilter" class="filter-select" aria-label="Filtrovat podle stavu hodnocení">
+          <option value="all">Všechny týmy</option>
+          <option value="evaluated">Jen vyhodnocené</option>
+          <option value="waiting">Jen nevyhodnocené</option>
+        </select>
+
+        <button id="exportButton" class="export-button" type="button">
+          Exportovat CSV
+        </button>
+
+        <button id="downloadPhotosButton" class="export-button" type="button">
+          Stáhnout všechny fotky
+        </button>
+
+        <button id="refreshButton" class="refresh-button" type="button">
+          Obnovit výsledky
+        </button>
+      </div>
+
+
+      <section class="card bonus-overview" aria-labelledby="bonusOverviewTitle">
+        <h2 id="bonusOverviewTitle">Přehled bonusových vítězů</h2>
+
+        <p class="intro">
+          Zde rychle vidíte, které bonusové kategorie už mají vítěze.
+        </p>
+
+        <div id="bonusOverviewGrid" class="bonus-overview-grid"></div>
+      </section>
+
+      <section class="card table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pořadí</th>
+                <th>Tým</th>
+                <th>Členové</th>
+                <th>Základ</th>
+                <th>Bonus</th>
+                <th>Celkem</th>
+                <th>Hodnocení</th>
+                <th>Odevzdáno</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+
+            <tbody id="submissionsBody"></tbody>
+          </table>
+
+          <div id="emptyState" class="empty-state">
+            Zatím nejsou načtené žádné výsledky.
+          </div>
+        </div>
+      </section>
+
+      <div id="dashboardStatus" class="status" role="status" aria-live="polite"></div>
+
+      <section id="detailPanel" class="detail-panel">
+        <div class="card detail-card">
+          <button id="closeDetailButton" class="close-detail" type="button" aria-label="Zavřít detail">
+            ×
+          </button>
+
+          <h2 id="detailTeamName">Detail týmu</h2>
+          <p id="detailMembers" class="intro"></p>
+
+          <div class="detail-meta">
+            <div class="meta-item">
+              <span class="meta-label">Splněno</span>
+              <span id="detailCompleted" class="meta-value"></span>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label">Kód odevzdání</span>
+              <span id="detailCode" class="meta-value code"></span>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label">Čas odevzdání</span>
+              <span id="detailTime" class="meta-value"></span>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label">Verze aplikace</span>
+              <span id="detailVersion" class="meta-value"></span>
+            </div>
+          </div>
+
+
+          <section class="evaluation-card" aria-labelledby="evaluationTitle">
+            <h3 id="evaluationTitle">Bodování organizátora</h3>
+
+            <p class="evaluation-help">
+              Tým získá za každý označený úkol automaticky 1 bod. Pokud je odpověď chybná
+              nebo důkaz nesplňuje zadání, můžete konkrétní základní bod ručně neuznat.
+            </p>
+
+            <div class="evaluation-subsection">
+              <h4>Základní body za jednotlivé úkoly</h4>
+              <p class="evaluation-help">
+                Zaškrtnutý úkol má 1 bod. Odškrtnutím bod odeberete; týmové odevzdání se tím nemaže.
+              </p>
+              <div id="taskPointList" class="task-point-list"></div>
+            </div>
+
+            <div class="evaluation-subsection">
+              <h4>Bonusové body</h4>
+              <p class="evaluation-help">
+                Každou bonusovou kategorii může získat jen jeden tým. Výjimkou je bonus
+                Spejbl &amp; Hurvínek, který lze udělit více týmům.
+              </p>
+              <div id="bonusList" class="bonus-list"></div>
+            </div>
+
+            <div class="evaluation-summary">
+              <div class="summary-item">
+                <span id="detailBasePoints" class="evaluation-number">0</span>
+                <span class="evaluation-label">základních bodů</span>
+              </div>
+
+              <div class="summary-item">
+                <span id="detailBonusPoints" class="evaluation-number">0</span>
+                <span class="evaluation-label">bonusových bodů</span>
+              </div>
+
+              <div class="summary-item">
+                <span id="detailTotalPoints" class="evaluation-number">0</span>
+                <span class="evaluation-label">bodů celkem</span>
+              </div>
+            </div>
+
+            <label class="form-field" for="evaluationNote">
+              <span>Poznámka hodnotitele</span>
+            </label>
+
+            <textarea
+              id="evaluationNote"
+              class="evaluation-note"
+              maxlength="1000"
+              placeholder="Volitelná poznámka k hodnocení…"
+            ></textarea>
+
+            <button id="saveEvaluationButton" class="save-evaluation-button" type="button">
+              Uložit hodnocení
+            </button>
+
+            <div id="evaluationStatus" class="evaluation-status" role="status" aria-live="polite"></div>
+          </section>
+
+
+          <section class="danger-zone" aria-labelledby="dangerZoneTitle">
+            <h3 id="dangerZoneTitle">Smazání výsledku</h3>
+
+            <p>
+              Smaže celý týmový výsledek včetně odeslaných fotografií.
+              Tuto akci nelze vrátit.
+            </p>
+
+            <button id="deleteTeamButton" class="delete-team-button" type="button">
+              Smazat tento tým a jeho výsledky
+            </button>
+          </section>
+
+          <h3 class="section-title">Úkoly a odpovědi</h3>
+          <div id="taskResults" class="task-results"></div>
+
+          <h3 class="section-title">Fotografie</h3>
+          <div id="photoGrid" class="photo-grid"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <script>
+    const supabaseUrl = "https://hqkongijaoxfbhatlxjg.supabase.co";
+    const supabasePublishableKey =
+      "sb_publishable_zID4S29fjci3_TI6M7mDPw_1vpEPpX7";
+
+    const supabaseClient = window.supabase.createClient(
+      supabaseUrl,
+      supabasePublishableKey
+    );
+
+    const taskDefinitions = [
+      { id: "katedrala", title: "Katedrála" },
+      { id: "radnice", title: "Radnice" },
+      { id: "spejbl", title: "Spejbl & Hurvínek" },
+      { id: "synagoga", title: "Synagoga" },
+      { id: "djkt", title: "DJKT" },
+      { id: "beseda", title: "Měšťanská beseda" },
+      { id: "muzeum", title: "Západočeské muzeum" },
+      { id: "masne-kramy", title: "Masné krámy" },
+      { id: "vymena", title: "Vyměňovací výzva" },
+      { id: "cizinec", title: "Fotka s cizincem" },
+      { id: "pomucka", title: "Učební pomůcka" },
+      { id: "recenze", title: "Pochvala či výtka?" },
+      { id: "talisman", title: "Týmový talisman" },
+      { id: "like", title: "LIKE?" },
+      { id: "bavilo", title: "Co vás bavilo?" },
+      { id: "byl-jsem-zde", title: "Byl jsem zde" }
+    ];
+
+
+    const bonusDefinitions = [
+      { id: "katedrala", title: "Katedrála – nejlepší přání", max: 1 },
+      {
+        id: "spejbl",
+        title: "Spejbl & Hurvínek – bonusová fotografie",
+        max: 1,
+        allowMultipleWinners: true,
+        // Starší databázový index hlídá klíč "spejbl" jako jedinečný.
+        // Pro více vítězů proto nové hodnocení ukládáme pod novým klíčem,
+        // ale při čtení dál podporujeme i starší uložená data.
+        storageId: "spejbl_multi",
+        legacyStorageIds: ["spejbl"]
+      },
+      { id: "synagoga", title: "Synagoga – nejlepší důvod", max: 1 },
+      { id: "muzeum", title: "Západočeské muzeum – nejlepší exponát", max: 1 },
+      { id: "vymena", title: "Vyměňovací výzva – nejlepší výměna", max: 3 },
+      { id: "talisman", title: "Týmový talisman – nejlepší talisman", max: 1 },
+      { id: "bavilo", title: "Co vás bavilo? – nejlepší historka", max: 1 }
+    ];
+
+    const loginSection = document.getElementById("loginSection");
+    const loginForm = document.getElementById("loginForm");
+    const loginButton = document.getElementById("loginButton");
+    const loginStatus = document.getElementById("loginStatus");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    const dashboard = document.getElementById("dashboard");
+    const logoutButton = document.getElementById("logoutButton");
+    const refreshButton = document.getElementById("refreshButton");
+    const searchInput = document.getElementById("searchInput");
+    const evaluationFilter = document.getElementById("evaluationFilter");
+    const exportButton = document.getElementById("exportButton");
+    const downloadPhotosButton = document.getElementById("downloadPhotosButton");
+    const bonusOverviewGrid = document.getElementById("bonusOverviewGrid");
+    const submissionsBody = document.getElementById("submissionsBody");
+    const emptyState = document.getElementById("emptyState");
+    const dashboardStatus = document.getElementById("dashboardStatus");
+
+    const teamCount = document.getElementById("teamCount");
+    const averageCompleted = document.getElementById("averageCompleted");
+    const photoCount = document.getElementById("photoCount");
+    const evaluatedCount = document.getElementById("evaluatedCount");
+
+    const detailPanel = document.getElementById("detailPanel");
+    const closeDetailButton = document.getElementById("closeDetailButton");
+    const detailTeamName = document.getElementById("detailTeamName");
+    const detailMembers = document.getElementById("detailMembers");
+    const detailCompleted = document.getElementById("detailCompleted");
+    const detailCode = document.getElementById("detailCode");
+    const detailTime = document.getElementById("detailTime");
+    const detailVersion = document.getElementById("detailVersion");
+    const taskResults = document.getElementById("taskResults");
+    const photoGrid = document.getElementById("photoGrid");
+    const taskPointList = document.getElementById("taskPointList");
+    const bonusList = document.getElementById("bonusList");
+    const detailBasePoints = document.getElementById("detailBasePoints");
+    const detailBonusPoints = document.getElementById("detailBonusPoints");
+    const detailTotalPoints = document.getElementById("detailTotalPoints");
+    const evaluationNote = document.getElementById("evaluationNote");
+    const saveEvaluationButton = document.getElementById("saveEvaluationButton");
+    const evaluationStatus = document.getElementById("evaluationStatus");
+    const deleteTeamButton = document.getElementById("deleteTeamButton");
+
+    let submissions = [];
+    let currentSubmissionId = null;
+
+    function showStatus(element, type, message) {
+      element.className = `status show ${type}`;
+      element.textContent = message;
+    }
+
+    function hideStatus(element) {
+      element.className = "status";
+      element.textContent = "";
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "Neuvedeno";
+      }
+
+      return new Intl.DateTimeFormat("cs-CZ", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(new Date(value));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showLogin() {
+      loginSection.style.display = "block";
+      dashboard.classList.remove("show");
+      logoutButton.classList.remove("show");
+    }
+
+    function showDashboard() {
+      loginSection.style.display = "none";
+      dashboard.classList.add("show");
+      logoutButton.classList.add("show");
+    }
+
+
+    function escapeCsv(value) {
+      const text = String(value ?? "");
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    function downloadCsv(filename, rows) {
+      const csvContent = rows
+        .map(row => row.map(escapeCsv).join(";"))
+        .join("\n");
+
+      const blob = new Blob(
+        ["\uFEFF" + csvContent],
+        { type: "text/csv;charset=utf-8" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function sanitizeZipName(value, fallback = "soubor") {
+      const cleaned = String(value ?? "")
+        .replace(/[\\/:*?"<>|\u0000-\u001F]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/[. ]+$/g, "");
+
+      return cleaned || fallback;
+    }
+
+    function getPhotoExtension(path, blob) {
+      const pathMatch = String(path || "").match(/\.([a-zA-Z0-9]{1,8})$/);
+
+      if (pathMatch) {
+        return pathMatch[1].toLowerCase();
+      }
+
+      const extensionByType = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+        "image/heic": "heic",
+        "image/heif": "heif"
+      };
+
+      return extensionByType[blob?.type] || "jpg";
+    }
+
+    async function downloadAllPhotos() {
+      const photoItems = submissions.flatMap(submission =>
+        Object.entries(submission.photo_paths || {}).map(
+          ([photoId, path]) => ({
+            submission,
+            photoId,
+            path
+          })
+        )
+      );
+
+      if (photoItems.length === 0) {
+        showStatus(
+          dashboardStatus,
+          "error",
+          "Nejsou k dispozici žádné fotografie ke stažení."
+        );
+
+        return;
+      }
+
+      if (!window.JSZip) {
+        showStatus(
+          dashboardStatus,
+          "error",
+          "Knihovna pro vytvoření ZIPu se nenačetla. Zkontrolujte připojení a obnovte stránku."
+        );
+
+        return;
+      }
+
+      downloadPhotosButton.disabled = true;
+      const originalButtonText = downloadPhotosButton.textContent;
+      const zip = new window.JSZip();
+      let downloadedCount = 0;
+      const failedPhotos = [];
+
+      try {
+        for (let index = 0; index < photoItems.length; index += 1) {
+          const item = photoItems[index];
+          const { submission, photoId, path } = item;
+
+          downloadPhotosButton.textContent =
+            `Stahuji ${index + 1}/${photoItems.length}…`;
+
+          showStatus(
+            dashboardStatus,
+            "working",
+            `Připravuji fotografie: ${index + 1} z ${photoItems.length}.`
+          );
+
+          const { data: photoBlob, error } = await supabaseClient
+            .storage
+            .from("team-photos")
+            .download(path);
+
+          if (error || !photoBlob) {
+            failedPhotos.push({
+              teamName: submission.team_name,
+              photoId,
+              message: error?.message || "Fotografii se nepodařilo načíst."
+            });
+            continue;
+          }
+
+          const taskTitle = taskDefinitions.find(
+            task => task.id === photoId
+          )?.title || photoId;
+
+          const teamFolder = sanitizeZipName(
+            `${submission.team_name || "Tým"} - ${submission.submission_code || submission.id}`,
+            "Tým"
+          );
+
+          const extension = getPhotoExtension(path, photoBlob);
+          const fileName = sanitizeZipName(
+            `${String(index + 1).padStart(3, "0")} - ${taskTitle}`,
+            `fotografie-${index + 1}`
+          );
+
+          zip.folder(teamFolder).file(
+            `${fileName}.${extension}`,
+            photoBlob
+          );
+
+          downloadedCount += 1;
+        }
+
+        if (downloadedCount === 0) {
+          throw new Error(
+            "Nepodařilo se načíst ani jednu fotografii. Zkontrolujte oprávnění úložiště."
+          );
+        }
+
+        if (failedPhotos.length > 0) {
+          const errorReport = [
+            "Následující fotografie se nepodařilo stáhnout:",
+            "",
+            ...failedPhotos.map(photo =>
+              `${photo.teamName} | ${photo.photoId} | ${photo.message}`
+            )
+          ].join("\n");
+
+          zip.file("CHYBY-PRI-STAHOVANI.txt", errorReport);
+        }
+
+        downloadPhotosButton.textContent = "Vytvářím ZIP…";
+        showStatus(
+          dashboardStatus,
+          "working",
+          `Vytvářím ZIP s ${downloadedCount} fotografiemi…`
+        );
+
+        const zipBlob = await zip.generateAsync({
+          type: "blob",
+          compression: "DEFLATE",
+          compressionOptions: {
+            level: 6
+          }
+        });
+
+        const date = new Date().toISOString().slice(0, 10);
+        const url = URL.createObjectURL(zipBlob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = `plzenska-vyzva-fotografie-${date}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 1000);
+
+        showStatus(
+          dashboardStatus,
+          failedPhotos.length > 0 ? "error" : "success",
+          failedPhotos.length > 0
+            ? `ZIP byl vytvořen. Staženo ${downloadedCount} fotografií, ${failedPhotos.length} se nepodařilo načíst; seznam chyb je uvnitř ZIPu.`
+            : `ZIP se ${downloadedCount} fotografiemi byl vytvořen.`
+        );
+      } catch (error) {
+        console.error(error);
+
+        showStatus(
+          dashboardStatus,
+          "error",
+          `Fotografie se nepodařilo stáhnout: ${error.message || "Neznámá chyba"}`
+        );
+      } finally {
+        downloadPhotosButton.disabled = false;
+        downloadPhotosButton.textContent = originalButtonText;
+      }
+    }
+
+    function exportResultsToCsv() {
+      if (submissions.length === 0) {
+        showStatus(
+          dashboardStatus,
+          "error",
+          "Není co exportovat."
+        );
+
+        return;
+      }
+
+      const rankedSubmissions = [...submissions].sort((a, b) => {
+        const totalA =
+          getAwardedBasePoints(a) +
+          Number(a.bonus_points || 0);
+
+        const totalB =
+          getAwardedBasePoints(b) +
+          Number(b.bonus_points || 0);
+
+        if (totalB !== totalA) {
+          return totalB - totalA;
+        }
+
+        const bonusA = Number(a.bonus_points || 0);
+        const bonusB = Number(b.bonus_points || 0);
+
+        if (bonusB !== bonusA) {
+          return bonusB - bonusA;
+        }
+
+        return new Date(a.submitted_at) - new Date(b.submitted_at);
+      });
+
+      let previousBase = null;
+      let previousBonus = null;
+      let previousRank = 0;
+
+      const headers = [
+        "Pořadí",
+        "Tým",
+        "Členové",
+        "Základní body",
+        "Automaticky označeno",
+        "Odebrané základní body",
+        "Neuznané úkoly",
+        "Bonusové body",
+        "Body celkem",
+        "Stav hodnocení",
+        "Kód odevzdání",
+        "Čas odevzdání",
+        ...taskDefinitions.map(task => task.title),
+        "Poznámka hodnotitele"
+      ];
+
+      const rows = [headers];
+
+      rankedSubmissions.forEach((submission, index) => {
+        const basePoints = getAwardedBasePoints(submission);
+        const originalBasePoints = Number(submission.completed_count || 0);
+        const removedBasePoints = Math.max(0, originalBasePoints - basePoints);
+        const rejectedTasks = getRejectedTaskTitles(submission).join(", ");
+        const bonusPoints = Number(submission.bonus_points || 0);
+
+        const sameScore =
+          index > 0 &&
+          basePoints === previousBase &&
+          bonusPoints === previousBonus;
+
+        const rank = sameScore
+          ? previousRank
+          : index + 1;
+
+        previousBase = basePoints;
+        previousBonus = bonusPoints;
+        previousRank = rank;
+
+        const answers = submission.answers || {};
+
+        rows.push([
+          rank,
+          submission.team_name,
+          submission.team_members || "",
+          basePoints,
+          originalBasePoints,
+          removedBasePoints,
+          rejectedTasks,
+          bonusPoints,
+          basePoints + bonusPoints,
+          submission.evaluated_at ? "Vyhodnoceno" : "Nevyhodnoceno",
+          submission.submission_code,
+          formatDate(submission.submitted_at),
+          ...taskDefinitions.map(task => answers[task.id] || ""),
+          submission.evaluation_note || ""
+        ]);
+      });
+
+      const date = new Date().toISOString().slice(0, 10);
+
+      downloadCsv(
+        `plzenska-vyzva-vysledky-${date}.csv`,
+        rows
+      );
+
+      showStatus(
+        dashboardStatus,
+        "success",
+        "Export CSV byl vytvořen."
+      );
+    }
+
+    async function login(email, password) {
+      loginButton.disabled = true;
+      showStatus(loginStatus, "working", "Přihlašuji…");
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      loginButton.disabled = false;
+
+      if (error) {
+        showStatus(
+          loginStatus,
+          "error",
+          "Přihlášení se nepodařilo. Zkontrolujte e-mail a heslo."
+        );
+
+        return;
+      }
+
+      passwordInput.value = "";
+      hideStatus(loginStatus);
+      showDashboard();
+      await loadSubmissions();
+    }
+
+    async function logout() {
+      logoutButton.disabled = true;
+
+      await supabaseClient.auth.signOut();
+
+      submissions = [];
+      submissionsBody.innerHTML = "";
+      emptyState.style.display = "block";
+      detailPanel.classList.remove("show");
+      logoutButton.disabled = false;
+      showLogin();
+    }
+
+    async function loadSubmissions() {
+      refreshButton.disabled = true;
+      showStatus(
+        dashboardStatus,
+        "working",
+        "Načítám odevzdané výsledky…"
+      );
+
+      const { data, error } = await supabaseClient
+        .from("submissions")
+        .select("*")
+        .order("submitted_at", {
+          ascending: false
+        });
+
+      refreshButton.disabled = false;
+
+      if (error) {
+        showStatus(
+          dashboardStatus,
+          "error",
+          `Výsledky se nepodařilo načíst: ${error.message}`
+        );
+
+        return;
+      }
+
+      submissions = Array.isArray(data) ? data : [];
+      hideStatus(dashboardStatus);
+      renderSummary();
+      renderBonusOverview();
+      renderTable();
+    }
+
+    function renderSummary() {
+      const totalTeams = submissions.length;
+
+      const totalCompleted = submissions.reduce(
+        (sum, submission) =>
+          sum + getAwardedBasePoints(submission),
+        0
+      );
+
+      const totalPhotos = submissions.reduce(
+        (sum, submission) =>
+          sum + Object.keys(submission.photo_paths || {}).length,
+        0
+      );
+
+      teamCount.textContent = totalTeams;
+
+      averageCompleted.textContent = totalTeams
+        ? (totalCompleted / totalTeams).toFixed(1)
+        : "0";
+
+      photoCount.textContent = totalPhotos;
+
+      evaluatedCount.textContent = submissions.filter(
+        submission => Boolean(submission.evaluated_at)
+      ).length;
+    }
+
+
+    function renderBonusOverview() {
+      bonusOverviewGrid.innerHTML = "";
+
+      bonusDefinitions.forEach(bonus => {
+        const winners = submissions.filter(submission =>
+          getBonusValueFromDetails(
+            submission.bonus_details,
+            bonus
+          ) > 0
+        );
+
+        const item = document.createElement("article");
+        item.className = "bonus-overview-item";
+
+        let winnerText = "Zatím nepřiděleno";
+
+        if (winners.length > 0) {
+          const winnerList = winners
+            .map(winner =>
+              `${escapeHtml(winner.team_name)} (${getBonusValueFromDetails(winner.bonus_details, bonus)} b.)`
+            )
+            .join(", ");
+
+          winnerText = bonus.allowMultipleWinners
+            ? `Oceněné týmy: ${winnerList}`
+            : `Vítěz: ${winnerList}`;
+        }
+
+        item.innerHTML = `
+          <span class="bonus-overview-title">
+            ${escapeHtml(bonus.title)}
+          </span>
+
+          <span class="bonus-overview-winner${winners.length > 0 ? " assigned" : ""}">
+            ${winnerText}
+          </span>
+        `;
+
+        bonusOverviewGrid.appendChild(item);
+      });
+    }
+
+    function getFilteredSubmissions() {
+      const query = searchInput.value
+        .trim()
+        .toLocaleLowerCase("cs");
+
+      const filterValue = evaluationFilter.value;
+
+      return submissions.filter(submission => {
+        const searchableText = [
+          submission.team_name,
+          submission.team_members,
+          submission.submission_code
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLocaleLowerCase("cs");
+
+        const matchesSearch =
+          query === "" || searchableText.includes(query);
+
+        const isEvaluated = Boolean(submission.evaluated_at);
+
+        const matchesFilter =
+          filterValue === "all" ||
+          (filterValue === "evaluated" && isEvaluated) ||
+          (filterValue === "waiting" && !isEvaluated);
+
+        return matchesSearch && matchesFilter;
+      });
+    }
+
+    function renderTable() {
+      const rankedSubmissions = [...submissions].sort((a, b) => {
+        const baseA = getAwardedBasePoints(a);
+        const baseB = getAwardedBasePoints(b);
+        const bonusA = Number(a.bonus_points || 0);
+        const bonusB = Number(b.bonus_points || 0);
+        const totalA = baseA + bonusA;
+        const totalB = baseB + bonusB;
+
+        if (totalB !== totalA) {
+          return totalB - totalA;
+        }
+
+        if (bonusB !== bonusA) {
+          return bonusB - bonusA;
+        }
+
+        return new Date(a.submitted_at) - new Date(b.submitted_at);
+      });
+
+      const rankById = new Map();
+      let previousBase = null;
+      let previousBonus = null;
+      let previousRank = 0;
+
+      rankedSubmissions.forEach((submission, index) => {
+        const basePoints = getAwardedBasePoints(submission);
+        const bonusPoints = Number(submission.bonus_points || 0);
+
+        const hasSameScore =
+          index > 0 &&
+          basePoints === previousBase &&
+          bonusPoints === previousBonus;
+
+        const rank = hasSameScore
+          ? previousRank
+          : index + 1;
+
+        rankById.set(submission.id, rank);
+
+        previousBase = basePoints;
+        previousBonus = bonusPoints;
+        previousRank = rank;
+      });
+
+      const filteredIds = new Set(
+        getFilteredSubmissions().map(submission => submission.id)
+      );
+
+      const filtered = rankedSubmissions.filter(
+        submission => filteredIds.has(submission.id)
+      );
+
+      submissionsBody.innerHTML = "";
+
+      emptyState.style.display =
+        filtered.length === 0 ? "block" : "none";
+
+      filtered.forEach(submission => {
+        const row = document.createElement("tr");
+        const basePoints = getAwardedBasePoints(submission);
+        const originalBasePoints = Number(submission.completed_count || 0);
+        const bonusPoints = Number(submission.bonus_points || 0);
+        const totalPoints = basePoints + bonusPoints;
+        const rank = rankById.get(submission.id);
+
+        row.innerHTML = `
+          <td>
+            <span class="ranking-position">${rank}.</span>
+          </td>
+
+          <td>
+            <div class="team-name">${escapeHtml(submission.team_name)}</div>
+            <div class="small-text code">${escapeHtml(submission.submission_code)}</div>
+          </td>
+
+          <td>
+            <div class="small-text">
+              ${escapeHtml(submission.team_members || "Neuvedeno")}
+            </div>
+          </td>
+
+          <td>
+            <strong>${basePoints}</strong>
+            <span class="small-text"> / ${Number(submission.total_count || 0)}</span>
+            ${
+              basePoints !== originalBasePoints
+                ? `<div class="small-text score-correction">původně ${originalBasePoints}</div>`
+                : ""
+            }
+          </td>
+
+          <td>
+            <strong>${bonusPoints}</strong>
+          </td>
+
+          <td>
+            <span class="score-value">${totalPoints}</span>
+          </td>
+
+          <td>
+            <span class="evaluation-badge ${submission.evaluated_at ? "done" : "waiting"}">
+              ${submission.evaluated_at ? "✅ Vyhodnoceno" : "⏳ Čeká"}
+            </span>
+          </td>
+
+          <td>
+            <div class="small-text">
+              ${escapeHtml(formatDate(submission.submitted_at))}
+            </div>
+          </td>
+
+          <td>
+            <button
+              class="open-button"
+              type="button"
+              data-submission-id="${escapeHtml(submission.id)}"
+            >
+              Otevřít
+            </button>
+          </td>
+        `;
+
+        submissionsBody.appendChild(row);
+      });
+
+      submissionsBody
+        .querySelectorAll(".open-button")
+        .forEach(button => {
+          button.addEventListener("click", () => {
+            openSubmission(button.dataset.submissionId);
+          });
+        });
+    }
+
+    function getTaskCompletionMap(submission) {
+      const map = new Map();
+
+      const completedTasks = Array.isArray(
+        submission.completed_tasks
+      )
+        ? submission.completed_tasks
+        : [];
+
+      completedTasks.forEach(task => {
+        if (task && task.id) {
+          map.set(task.id, Boolean(task.completed));
+        }
+      });
+
+      return map;
+    }
+
+    function getAwardedBasePoints(submission, overrides = submission.task_point_overrides || {}) {
+      const completionMap = getTaskCompletionMap(submission);
+      const hasDetailedCompletion = Array.isArray(submission.completed_tasks)
+        && submission.completed_tasks.some(task => task && task.id);
+
+      if (!hasDetailedCompletion) {
+        const removedCount = Object.values(overrides || {})
+          .filter(value => value === false)
+          .length;
+
+        return Math.max(
+          0,
+          Number(submission.completed_count || 0) - removedCount
+        );
+      }
+
+      return taskDefinitions.reduce((total, task) => {
+        const completed = completionMap.get(task.id) === true;
+        const pointAwarded = overrides?.[task.id] !== false;
+        return total + (completed && pointAwarded ? 1 : 0);
+      }, 0);
+    }
+
+    function getRejectedTaskTitles(submission) {
+      const completionMap = getTaskCompletionMap(submission);
+      const overrides = submission.task_point_overrides || {};
+
+      return taskDefinitions
+        .filter(task =>
+          completionMap.get(task.id) === true &&
+          overrides[task.id] === false
+        )
+        .map(task => task.title);
+    }
+
+    function getTaskPointOverridesFromInputs() {
+      const overrides = {};
+
+      taskPointList
+        .querySelectorAll(".task-point-checkbox:not(:disabled)")
+        .forEach(input => {
+          if (!input.checked) {
+            overrides[input.dataset.taskId] = false;
+          }
+        });
+
+      return overrides;
+    }
+
+    function getBasePointsFromInputs() {
+      return taskPointList
+        .querySelectorAll(".task-point-checkbox:not(:disabled):checked")
+        .length;
+    }
+
+    function updateTaskResultAwardState(taskId, awarded) {
+      const card = taskResults.querySelector(
+        `.task-result[data-task-id="${CSS.escape(taskId)}"]`
+      );
+
+      if (!card) {
+        return;
+      }
+
+      const badge = card.querySelector(".badge");
+      card.classList.toggle("point-rejected", !awarded);
+
+      if (badge) {
+        badge.className = `badge ${awarded ? "done" : "rejected"}`;
+        badge.textContent = awarded
+          ? "Splněno · 1 bod"
+          : "Splněno · bod neuznán";
+      }
+    }
+
+    async function loadPhotoUrls(photoPaths) {
+      const entries = Object.entries(photoPaths || {});
+      const results = [];
+
+      for (const [photoId, path] of entries) {
+        const { data, error } = await supabaseClient
+          .storage
+          .from("team-photos")
+          .createSignedUrl(path, 60 * 60);
+
+        results.push({
+          photoId,
+          path,
+          signedUrl: data?.signedUrl || null,
+          error
+        });
+      }
+
+      return results;
+    }
+
+
+    function getBonusStorageId(bonus) {
+      return bonus.storageId || bonus.id;
+    }
+
+    function getBonusValueFromDetails(details, bonus) {
+      const source = details || {};
+      const storageIds = [
+        getBonusStorageId(bonus),
+        ...(bonus.legacyStorageIds || [])
+      ];
+
+      return storageIds.reduce(
+        (highestValue, storageId) => Math.max(
+          highestValue,
+          Number(source[storageId] || 0)
+        ),
+        0
+      );
+    }
+
+    function getBonusDetailsFromInputs() {
+      const details = {};
+
+      bonusList.querySelectorAll(".bonus-input").forEach(input => {
+        const bonus = bonusDefinitions.find(
+          item => item.id === input.dataset.bonusId
+        );
+
+        if (!bonus) {
+          return;
+        }
+
+        const max = Number(input.dataset.max || 0);
+        const rawValue = Number(input.value || 0);
+        const value = Math.max(0, Math.min(max, rawValue));
+
+        details[getBonusStorageId(bonus)] = value;
+      });
+
+      return details;
+    }
+
+    function calculateBonusTotal(details) {
+      return Object.values(details || {}).reduce(
+        (sum, value) => sum + Number(value || 0),
+        0
+      );
+    }
+
+    function updateEvaluationTotals() {
+      const submission = submissions.find(
+        item => item.id === currentSubmissionId
+      );
+
+      if (!submission) {
+        return;
+      }
+
+      const basePoints = getBasePointsFromInputs();
+      const bonusPoints = calculateBonusTotal(
+        getBonusDetailsFromInputs()
+      );
+
+      detailBasePoints.textContent = basePoints;
+      detailBonusPoints.textContent = bonusPoints;
+      detailTotalPoints.textContent = basePoints + bonusPoints;
+    }
+
+    function getBonusWinner(bonus, currentSubmissionId) {
+      if (bonus.allowMultipleWinners) {
+        return null;
+      }
+
+      return submissions.find(otherSubmission => {
+        if (otherSubmission.id === currentSubmissionId) {
+          return false;
+        }
+
+        return getBonusValueFromDetails(
+          otherSubmission.bonus_details,
+          bonus
+        ) > 0;
+      }) || null;
+    }
+
+    function renderEvaluation(submission) {
+      currentSubmissionId = submission.id;
+      taskPointList.innerHTML = "";
+      bonusList.innerHTML = "";
+
+      const completionMap = getTaskCompletionMap(submission);
+      const savedTaskOverrides = submission.task_point_overrides || {};
+      const savedDetails = submission.bonus_details || {};
+
+      taskDefinitions.forEach(task => {
+        const completed = completionMap.get(task.id) === true;
+        const awarded = completed && savedTaskOverrides[task.id] !== false;
+        const row = document.createElement("div");
+
+        row.className = [
+          "task-point-row",
+          completed ? "" : "is-uncompleted",
+          completed && !awarded ? "is-rejected" : ""
+        ].filter(Boolean).join(" ");
+
+        row.innerHTML = `
+          <div>
+            <span class="task-point-name">${escapeHtml(task.title)}</span>
+            <span class="task-point-state">
+              ${
+                completed
+                  ? "Tým úkol označil jako splněný."
+                  : "Tým úkol neoznačil jako splněný."
+              }
+            </span>
+          </div>
+
+          <label class="task-point-control">
+            <input
+              class="task-point-checkbox"
+              type="checkbox"
+              data-task-id="${escapeHtml(task.id)}"
+              ${awarded ? "checked" : ""}
+              ${completed ? "" : "disabled"}
+            >
+            <span class="task-point-control-text">
+              ${
+                completed
+                  ? awarded ? "Udělit 1 bod" : "Bod neudělit"
+                  : "Bez bodu"
+              }
+            </span>
+          </label>
+        `;
+
+        taskPointList.appendChild(row);
+      });
+
+      taskPointList
+        .querySelectorAll(".task-point-checkbox:not(:disabled)")
+        .forEach(input => {
+          input.addEventListener("change", () => {
+            const row = input.closest(".task-point-row");
+            const label = row?.querySelector(".task-point-control-text");
+
+            row?.classList.toggle("is-rejected", !input.checked);
+
+            if (label) {
+              label.textContent = input.checked
+                ? "Udělit 1 bod"
+                : "Bod neudělit";
+            }
+
+            updateTaskResultAwardState(
+              input.dataset.taskId,
+              input.checked
+            );
+
+            updateEvaluationTotals();
+          });
+        });
+
+      bonusDefinitions.forEach(bonus => {
+        const row = document.createElement("div");
+        const winner = getBonusWinner(
+          bonus,
+          submission.id
+        );
+
+        const savedValue = Math.max(
+          0,
+          Math.min(
+            bonus.max,
+            getBonusValueFromDetails(savedDetails, bonus)
+          )
+        );
+
+        row.className =
+          `bonus-row${winner ? " is-occupied" : ""}`;
+
+        row.innerHTML = `
+          <div>
+            <span class="bonus-name">${escapeHtml(bonus.title)}</span>
+            <span class="bonus-maximum">Maximum: ${bonus.max} b.</span>
+            ${
+              bonus.allowMultipleWinners
+                ? `<span class="bonus-overview-winner assigned">Tento bonus lze udělit více týmům.</span>`
+                : winner
+                  ? `<span class="bonus-winner">Bonus už získal tým „${escapeHtml(winner.team_name)}“.</span>`
+                  : ""
+            }
+          </div>
+
+          <input
+            class="bonus-input"
+            type="number"
+            min="0"
+            max="${bonus.max}"
+            step="1"
+            value="${savedValue}"
+            data-bonus-id="${escapeHtml(bonus.id)}"
+            data-max="${bonus.max}"
+            aria-label="${escapeHtml(bonus.title)}"
+            ${winner ? "disabled" : ""}
+          >
+        `;
+
+        bonusList.appendChild(row);
+      });
+
+      bonusList.querySelectorAll(".bonus-input").forEach(input => {
+        input.addEventListener("input", () => {
+          const max = Number(input.dataset.max || 0);
+          const value = Number(input.value || 0);
+
+          if (value < 0) {
+            input.value = 0;
+          }
+
+          if (value > max) {
+            input.value = max;
+          }
+
+          updateEvaluationTotals();
+        });
+      });
+
+      evaluationNote.value = submission.evaluation_note || "";
+      evaluationStatus.className = "evaluation-status";
+      evaluationStatus.textContent = "";
+
+      updateEvaluationTotals();
+    }
+
+    async function deleteCurrentSubmission() {
+      const submission = submissions.find(
+        item => item.id === currentSubmissionId
+      );
+
+      if (!submission) {
+        return;
+      }
+
+      const firstConfirmation = window.confirm(
+        `Opravdu chcete smazat tým „${submission.team_name}“ a všechny jeho výsledky?`
+      );
+
+      if (!firstConfirmation) {
+        return;
+      }
+
+      const secondConfirmation = window.confirm(
+        "Tato akce je nevratná. Budou odstraněny odpovědi, skóre i fotografie. Opravdu pokračovat?"
+      );
+
+      if (!secondConfirmation) {
+        return;
+      }
+
+      deleteTeamButton.disabled = true;
+      deleteTeamButton.textContent = "Mažu tým…";
+
+      try {
+        const photoPaths = Object.values(
+          submission.photo_paths || {}
+        ).filter(Boolean);
+
+        if (photoPaths.length > 0) {
+          const { error: photoError } = await supabaseClient
+            .storage
+            .from("team-photos")
+            .remove(photoPaths);
+
+          if (photoError) {
+            throw new Error(
+              `Fotografie se nepodařilo smazat: ${photoError.message}`
+            );
+          }
+        }
+
+        const { error: submissionError } = await supabaseClient
+          .from("submissions")
+          .delete()
+          .eq("id", submission.id);
+
+        if (submissionError) {
+          throw submissionError;
+        }
+
+        submissions = submissions.filter(
+          item => item.id !== submission.id
+        );
+
+        currentSubmissionId = null;
+        detailPanel.classList.remove("show");
+
+        renderSummary();
+        renderBonusOverview();
+        renderTable();
+
+        showStatus(
+          dashboardStatus,
+          "success",
+          `Tým „${submission.team_name}“ byl včetně fotografií smazán.`
+        );
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      } catch (error) {
+        console.error(error);
+
+        evaluationStatus.className =
+          "evaluation-status show error";
+
+        evaluationStatus.textContent =
+          `Tým se nepodařilo smazat: ${error.message || "Neznámá chyba"}`;
+
+        deleteTeamButton.disabled = false;
+        deleteTeamButton.textContent =
+          "Smazat tento tým a jeho výsledky";
+      }
+    }
+
+    async function saveEvaluation() {
+      const submission = submissions.find(
+        item => item.id === currentSubmissionId
+      );
+
+      if (!submission) {
+        return;
+      }
+
+      const taskPointOverrides = getTaskPointOverridesFromInputs();
+      const basePoints = getBasePointsFromInputs();
+      const bonusDetails = getBonusDetailsFromInputs();
+      const bonusPoints = calculateBonusTotal(bonusDetails);
+
+      saveEvaluationButton.disabled = true;
+      saveEvaluationButton.textContent = "Ukládám…";
+      evaluationStatus.className = "evaluation-status";
+      evaluationStatus.textContent = "";
+
+      const {
+        data: { user }
+      } = await supabaseClient.auth.getUser();
+
+      const { error } = await supabaseClient
+        .from("submissions")
+        .update({
+          task_point_overrides: taskPointOverrides,
+          bonus_details: bonusDetails,
+          bonus_points: bonusPoints,
+          evaluation_note: evaluationNote.value.trim() || null,
+          evaluated_at: new Date().toISOString(),
+          evaluated_by: user?.id || null
+        })
+        .eq("id", submission.id);
+
+      saveEvaluationButton.disabled = false;
+      saveEvaluationButton.textContent = "Uložit hodnocení";
+
+      if (error) {
+        evaluationStatus.className =
+          "evaluation-status show error";
+
+        if (error.code === "23505") {
+          const constraintInfo = error.details || error.message || "";
+
+          evaluationStatus.textContent = constraintInfo
+            .toLocaleLowerCase("cs")
+            .includes("spejbl")
+              ? "Uložení stále blokuje databázové omezení pro bonus Spejbl & Hurvínek. Nahrajte tuto novou verzi administrace; používá pro tento bonus více-vítězný klíč a zachová čtení starších výsledků."
+              : "Některý jednovítězný bonus mezitím získal jiný tým. Obnovte výsledky a zkontrolujte bonusové kategorie.";
+        } else if (String(error.message || "").includes("task_point_overrides")) {
+          evaluationStatus.textContent =
+            "V databázi zatím chybí sloupec task_point_overrides. Spusťte přiložený SQL příkaz v Supabase SQL Editoru a zkuste uložení znovu.";
+        } else {
+          evaluationStatus.textContent =
+            `Hodnocení se nepodařilo uložit: ${error.message}`;
+        }
+
+        return;
+      }
+
+      submission.task_point_overrides = taskPointOverrides;
+      submission.bonus_details = bonusDetails;
+      submission.bonus_points = bonusPoints;
+      submission.evaluation_note =
+        evaluationNote.value.trim() || null;
+      submission.evaluated_at = new Date().toISOString();
+      submission.evaluated_by = user?.id || null;
+
+      evaluationStatus.className =
+        "evaluation-status show success";
+
+      const removedPoints = Math.max(
+        0,
+        Number(submission.completed_count || 0) - basePoints
+      );
+
+      evaluationStatus.textContent = removedPoints > 0
+        ? `Hodnocení bylo uloženo. Neuznáno: ${removedPoints} základních ${removedPoints === 1 ? "bod" : removedPoints >= 2 && removedPoints <= 4 ? "body" : "bodů"}.`
+        : "Hodnocení bylo úspěšně uloženo.";
+
+      renderSummary();
+      renderBonusOverview();
+      renderTable();
+      renderEvaluation(submission);
+      updateEvaluationTotals();
+    }
+
+    async function openSubmission(submissionId) {
+      const submission = submissions.find(
+        item => item.id === submissionId
+      );
+
+      if (!submission) {
+        return;
+      }
+
+      detailPanel.classList.add("show");
+      detailTeamName.textContent = submission.team_name;
+      detailMembers.textContent =
+        submission.team_members || "Členové týmu nebyli uvedeni.";
+
+      detailCompleted.textContent =
+        `${submission.completed_count} / ${submission.total_count} označeno · ${getAwardedBasePoints(submission)} b.`;
+
+      detailCode.textContent = submission.submission_code;
+      detailTime.textContent = formatDate(submission.submitted_at);
+      detailVersion.textContent =
+        submission.app_version || "Neuvedena";
+
+      deleteTeamButton.disabled = false;
+      deleteTeamButton.textContent =
+        "Smazat tento tým a jeho výsledky";
+
+      renderEvaluation(submission);
+
+      const answers = submission.answers || {};
+      const completionMap = getTaskCompletionMap(submission);
+
+      taskResults.innerHTML = "";
+
+      const savedTaskOverrides = submission.task_point_overrides || {};
+
+      taskDefinitions.forEach(task => {
+        const completed = completionMap.get(task.id) === true;
+        const pointAwarded = completed && savedTaskOverrides[task.id] !== false;
+        const answer = answers[task.id];
+        const item = document.createElement("article");
+
+        item.dataset.taskId = task.id;
+        item.className = [
+          "task-result",
+          completed ? "completed" : "",
+          completed && !pointAwarded ? "point-rejected" : ""
+        ].filter(Boolean).join(" ");
+
+        const badgeClass = !completed
+          ? "missing"
+          : pointAwarded ? "done" : "rejected";
+
+        const badgeText = !completed
+          ? "Nesplněno"
+          : pointAwarded ? "Splněno · 1 bod" : "Splněno · bod neuznán";
+
+        item.innerHTML = `
+          <div class="task-result-header">
+            <span class="task-result-title">
+              ${escapeHtml(task.title)}
+            </span>
+
+            <span class="badge ${badgeClass}">
+              ${badgeText}
+            </span>
+          </div>
+
+          <div class="answer${answer ? "" : " empty"}">
+            ${
+              answer
+                ? escapeHtml(answer)
+                : "Bez textové odpovědi"
+            }
+          </div>
+        `;
+
+        taskResults.appendChild(item);
+      });
+
+      photoGrid.innerHTML =
+        '<div class="small-text">Načítám fotografie…</div>';
+
+      const photoResults = await loadPhotoUrls(
+        submission.photo_paths
+      );
+
+      photoGrid.innerHTML = "";
+
+      if (photoResults.length === 0) {
+        photoGrid.innerHTML =
+          '<div class="small-text">Tým neodeslal žádné fotografie.</div>';
+      } else {
+        photoResults.forEach(photo => {
+          const card = document.createElement("article");
+          card.className = "photo-card";
+
+          const title =
+            taskDefinitions.find(
+              task => task.id === photo.photoId
+            )?.title || photo.photoId;
+
+          if (photo.error || !photo.signedUrl) {
+            card.innerHTML = `
+              <div class="photo-error">
+                Fotografii se nepodařilo načíst.
+              </div>
+
+              <div class="photo-caption">
+                ${escapeHtml(title)}
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <a
+                href="${escapeHtml(photo.signedUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="${escapeHtml(photo.signedUrl)}"
+                  alt="Fotografie k úkolu ${escapeHtml(title)}"
+                >
+              </a>
+
+              <div class="photo-caption">
+                ${escapeHtml(title)}
+              </div>
+            `;
+          }
+
+          photoGrid.appendChild(card);
+        });
+      }
+
+      detailPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+    loginForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      login(
+        emailInput.value.trim(),
+        passwordInput.value
+      );
+    });
+
+    logoutButton.addEventListener("click", logout);
+
+    refreshButton.addEventListener(
+      "click",
+      loadSubmissions
+    );
+
+    searchInput.addEventListener(
+      "input",
+      renderTable
+    );
+
+    evaluationFilter.addEventListener(
+      "change",
+      renderTable
+    );
+
+    exportButton.addEventListener(
+      "click",
+      exportResultsToCsv
+    );
+
+    downloadPhotosButton.addEventListener(
+      "click",
+      downloadAllPhotos
+    );
+
+    closeDetailButton.addEventListener("click", () => {
+      detailPanel.classList.remove("show");
+      currentSubmissionId = null;
+    });
+
+    saveEvaluationButton.addEventListener(
+      "click",
+      saveEvaluation
+    );
+
+    deleteTeamButton.addEventListener(
+      "click",
+      deleteCurrentSubmission
+    );
+
+    async function startAdminApp() {
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      if (session) {
+        showDashboard();
+        await loadSubmissions();
+      } else {
+        showLogin();
+      }
+    }
+
+    startAdminApp();
+  </script>
+</body>
+</html>
